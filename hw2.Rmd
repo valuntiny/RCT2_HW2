@@ -1,0 +1,85 @@
+---
+title: "Homework2"
+author: "Guojing Wu | UNI: gw2383"
+date: "10/10/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## A 24 Weeks Study on Efficacy of Exenatide and Phenylpropanolamine Twice Daily in Subjects With Type 2 Diabetes
+
+The primary aim of this study is to investigate whether the new drug Exenatide has a higher efficacy in type 2 diabetes patients from New York-Presbyterian Hospital, than an existing drug Phenylpropanolamine. We have four primary outcomes for this study: 
+
+* Change in HbA1c From Baseline to Week 24
+
+* Change in BMI From Baseline to Week 24
+
+* Change in Fast Plasma Gloucose From Baseline to Week 24
+
+* Change in Waist to Height Ratio From Baseline to Week 24
+
+We choose interventional (a.k.a. randomized clinical trial, RCT) study design, and assign two arms in this study: 
+
+* Treatment Arm: 5 mcg Exenatide twice daily for 24 weeks
+
+* Active Control Arm: 5 mcg Phenylpropanolamine twice daily for 24 weeks
+
+Because RCT can help avoid lead time bias and minimize heterogeneity effect among treatment and control arms. In RCT, we choose $\alpha$ level at 0.05 for suitable type I error control, and choose power Design at 80% level. Then we choose Design Alternative (DA) as 5 to make sure the standardized effect size is appropriate. The whole study lasts for 24 weeks, so that we leave enough time for drugs to take effect, and also minimize the environmental/random effect. Also known from prior studies, we found out that the retention rate is 95%, $\sigma$ is 10 and cross-over rate in each arm is 5%, no Intra-Class Correlation (ICC).
+
+Based on four primary outcomes, we have four null hypotheses:
+
+* $H_{01}$: no difference between treatment and control arm regard to the change in HbA1c from baseline to week 24, or $\mu_{1T} = \mu_{1C}$
+
+* $H_{02}$: no difference between treatment and control arm regard to the change in BMI from baseline to week 24, or $\mu_{2T} = \mu_{2C}$
+
+* $H_{03}$: no difference between treatment and control arm regard to the change in Fast Plasma Gloucose from baseline to week 24, or $\mu_{3T} = \mu_{3C}$
+
+* $H_{04}$: no difference between treatment and control arm regard to the change in Waist to Height Ratio from baseline to week 24, or $\mu_{4T} = \mu_{4C}$
+
+For each null hypothesis individually, we use two sample T-test to test the null, the corresponding statistic = $\frac{\overline{x_{iT}} - \overline{x_{iC}}}{\sigma \cdot \sqrt{\frac{2}{n}}} \sim t_{2n-2}$, where $n = n_{C} = n_{T}$ and $i = 1, 2, 3, 4$. But overall, since we have multiple outcomes we also need to adjust for family-wise error rate (FWER), here we choose Holm Step Down method for adjusting the outcome p-value.
+
+We don't need to include any other covariates because the recruiting and randomization part eliminates the imbalance of other covariates between treatment and control arms, and also covariates such as gender or age are not confounders in this study. But for sure there will be missing data due to drop out or cross-over, in that case, we treat the missing data as MCAR, so analyzing the observed data won't include any bias.
+
+Based on our null hypotheses and FWER control method, below is the procedure:
+
+1. rank 4 p-values ascending, let's say it's $p_{3} < p_{1} < p_{2} < p_{4}$
+
+2. compare $p_{3}$ with $0.05/4 = 0.0125$, if $p_{3} > 0.0125$ then stop, do not reject any $H_{0i}$ and state that there is no difference in efficacy on subjects with type 2 diabetes between Exenatide and Phenylpropanolamine from baseline to week 24. If $p_{3} < 0.0125$, then reject $H_{03}$ and state that there is enough evidence to support the difference between treatment and control arm regard to the change in Fast Plasma Gloucose from baseline to week 24, and go to (3)
+
+3. compare $p_{1}$ with $0.05/3 = 0.0167$, if $p_{1} > 0.0167$ then stop, do not reject $H_{01}, H_{02}, H_{04}$. If $p_{1} < 0.0167$, then reject $H_{01}$ and state that there is enough evidence to support the difference between treatment and control arm regard to the change in HbA1c from baseline to week 24, and go to (4)
+
+4. compare $p_{2}$ with $0.05/2 = 0.025$, if $p_{2} > 0.025$ then stop, do not reject $H_{02}, H_{04}$. If $p_{2} < 0.025$, then reject $H_{02}$ and state that there is enough evidence to support the difference between treatment and control arm regard to the change in BMI from baseline to week 24, and go to (5)
+
+5. compare $p_{4}$ with $0.05/1 = 0.05$, if $p_{4} > 0.05$ then stop, do not reject $H_{04}$. If $p_{4} < 0.05$, then reject all the $H_{0i}$ and state that there is enough evidence to support the difference in efficacy on subjects with type 2 diabetes between Exenatide and Phenylpropanolamine from baseline to week 24
+
+### power analysis
+
+$$
+\begin{split}
+D 
+&= (Z_{\alpha/2} + Z_{\beta})\sigma\sqrt{\frac{1}{n_{T}} + \frac{1}{n_{C}}} \\
+&= (Z_{\alpha/2} + Z_{\beta})\sigma\sqrt{\frac{2}{n}} \\
+where: \\
+&D = 5 \\
+n &= n_{T} = n_{C} \\
+\alpha &= 0.05, Z_{0.025} = 1.96 \\
+\beta &= 0.8, Z_{0.8} = 0.84 \\
+\sigma &= 10
+\end{split}
+$$
+
+Then, we calculate the final `n` we need based on retention and cross-over:
+
+* get designed n
+
+* adjust for retention: $n' = n / 0.95$
+
+* adjust for cross-over: $n'' = \frac{n'}{(1 - p_{T} - p_{C}) ^ 2}$
+
+We calculate the final $n''=$ 
+`r round(((1.96 + 0.84) * 10 / 5) ^ 2 * 2 / (0.95 * (1 - 0.05 - 0.05) ^ 2), 3)`
+, so in total the sample size we need $\approx$ 
+`r round(((1.96 + 0.84) * 10 / 5) ^ 2 * 2 * 2 / (0.95 * (1 - 0.05 - 0.05) ^ 2)) + 1`.
